@@ -18,7 +18,7 @@ class JsonData():
         return openedJson
 
 class Parse:
-    def __init__(self, jsonData, tripid, startime):
+    def __init__(self, jsonData, startime, tripid=''):
         self.jsonData = jsonData
         self.allGroups = self.jsonData['groups']
         self.allSegmentTemplates = self.jsonData['segmentTemplates']
@@ -54,7 +54,6 @@ class Parse:
 
         compiled_data = \
         {
-        'tripid': self.tripid,
         'startime': self.startime,
         'car': abs(self.missingDriving - 1), 'taxi': abs(self.missingTaxi - 1),
         'cycling': abs(self.missingCycling - 1),
@@ -66,6 +65,9 @@ class Parse:
         **cyclingData,
         **walkingData
         }
+
+        if self.tripid != '':
+            compiled_data.update({'tripid': self.tripid})
 
         return compiled_data
 
@@ -266,6 +268,8 @@ class Parse:
 
             return parsedGroupData
 
+    ### 'Best' functions to be deleted, retain only getBest()
+
     def getBestBus(self):
         bus = {}
         for i in range(len(self.allGroups)):
@@ -362,12 +366,17 @@ class Parse:
             transitGroupNumberMin = min(transit, key=lambda x: transit.get(x))
             return transitGroupNumberMin
     
-    def getBest(self):
+    def getBest(self, mode=''):
         best = {}
         for i in range(len(self.allGroups)):
             group = self.allGroups[i]
             groupData = Group(group, self.jsonData)
-            best[i] = groupData.weightedScore
+
+            if mode != '':
+                if mode in groupData.mode:
+                    best[i] = groupData.weightedScore
+            else:
+                best[i] = groupData.weightedScore
         
         if best != {}:
             bestGroupNumberMin = min(best, key=lambda x: best.get(x))
