@@ -1,2 +1,13 @@
-# temp. swap files
+# Swap Files
 *.swp
+
+# Idea files
+*.idea/
+
+# Compiled Python Modules
+*.pyc
+
+# SetupTools
+/dist/
+
+
