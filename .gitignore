@@ -5,7 +5,7 @@
 *.idea/
 
 # Compiled Python Modules
-*.pyc
++ __pycarche__
 
 # SetupTools
 /dist/
