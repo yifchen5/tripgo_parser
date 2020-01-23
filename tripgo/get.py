@@ -1,12 +1,9 @@
-import numpy as np
 import pandas as pd
 import os
 import requests
 import json
 import datetime
 import time
-from os import path
-from pprint import pprint
 from dateutil import tz
 from pathlib import Path
 
@@ -95,17 +92,20 @@ class Response():
         return directory
 
     def file_path(self, directory, unique_id=''):
-        md = ('-' + '-'.join(self.modes)) if self.modes is not [] else ''
+        md = '-'.join(self.modes) if self.modes is not [] else ''
 
         if unique_id == '' and self.tripid == '':
             olt = self.origlat[-4:]
             oln = self.origlon[-4:]
             dlt = self.destlat[-4:]
             dln = self.destlon[-4:]
-            unique_id = '{}-{}-{}-{}-{}{}.json'.format(olt, oln, dlt, dln, self.startimeTimestamp, md)
+            unique_id = '{}-{}-{}-{}-{}{}.json'.format(olt, oln, dlt, dln, self.startime, md)
 
-        elif unique_id == '':
-            unique_id = '{}-{}{}.json'.format(self.tripid, self.startime, md)
+        elif unique_id == '' and self.tripid != '':
+            unique_id = '{}-{}-{}.json'.format(self.tripid, self.startime, md)
+
+        else:
+            unique_id = ''.join([unique_id, '.json'])
 
         path = os.path.join(directory, unique_id)
         pathExists = os.path.exists(path)
@@ -115,7 +115,8 @@ class Response():
     def dateToTimestamp(self, dateString):
         dateArray = dateString.split('/')
         dateArray = [int(i) for i in dateArray]
-        timestamp = datetime.datetime(2020, dateArray[1], dateArray[0], tzinfo=tz.tzlocal()).timestamp()
+        currentYear = datetime.datetime.now().year
+        timestamp = datetime.datetime(currentYear + 1, dateArray[1], dateArray[0], tzinfo=tz.tzlocal()).timestamp()
 
         return int(timestamp)
 

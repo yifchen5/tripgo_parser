@@ -18,7 +18,7 @@ class JsonData():
         return openedJson
 
 class Parse:
-    def __init__(self, jsonData, startime, tripid=''):
+    def __init__(self, jsonData, startime='', tripid=''):
         self.jsonData = jsonData
         self.allGroups = self.jsonData['groups']
         self.allSegmentTemplates = self.jsonData['segmentTemplates']
@@ -68,6 +68,9 @@ class Parse:
 
         if self.tripid != '':
             compiled_data.update({'tripid': self.tripid})
+
+        if self.startime != '':
+            compiled_data.update({'startime': self.startime})
 
         return compiled_data
 
