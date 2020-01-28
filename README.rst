@@ -48,7 +48,7 @@ For example:
 
    # Request the routing data from TripGo
    data = tgp.get.Response(key, olt, oln, dlt, dln, mpm, dot).fetch()
-   parsedData = tgp.parse.Parse(data.getCompiledData())
+   parsedData = tgp.parse.Parse(data).getCompiledData()
 
 This will return:
 
@@ -120,7 +120,7 @@ For a large OD datasets, it is recommended to save the JSON data. The 'save' fun
 and one optional parameter. These are respectively:
 
 - Destination Folder ('myFolder') - written in the current working directory
-- Unique ID (.., unique_id='myuniqueid') - name of file
+- Unique ID (..,unique_id='myuniqueid') - name of file
 
 This can be done using the TripGo Parser as follows:
 
@@ -175,7 +175,7 @@ API to obtain trip attributes.
     dln = vista_dataset.destlon[i]
     startime = vista_dataset.startime[i]        # For example: '1020'
     travdate = vista_dataset.travdate[i]
-    mode = ['pt_pub']
+    modes = ['pt_pub']
 
     tripid = vista_dataset.tripid[i]            # For example: 'Y14H1050101P01T02'
 
