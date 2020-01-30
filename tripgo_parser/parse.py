@@ -235,6 +235,7 @@ class Parse:
             'taxi_travelTime': groupData.totalTravelTime,
             'taxi_weightedScore': groupData.weightedScore, # for testing
             'taxi_waitTime': groupData.waitTime,
+            'taxi_cost': groupData.,
             'taxi_walkingDistance': groupData.segmentData['Walking Distance'],
             'taxi_numberOfTransfers': groupData.numberOfTransfers,
             'taxi_hassleCost': groupData.hassleCost
@@ -261,8 +262,7 @@ class Parse:
             'transit_timeOnMainMode': groupData.timeOnMainMode,
             'transit_timeOnOtherModes': groupData.timeOnOtherModes,
             'transit_timeOnEachMode': groupData.segmentData['Travel Times'],
-            'transit_distances': groupData.segmentData['Distances'],
-            'transit_modes': groupData.segmentData['Modes'],
+            'transit_distances': groupData.segmentData['Distances'], 'transit_modes': groupData.segmentData['Modes'],
             'transit_start': groupData.segmentData['Start'],
             'transit_end': groupData.segmentData['End'],
             'transit_hassleCost': groupData.hassleCost,
@@ -485,6 +485,8 @@ class Trip:
             if 'pt_pub' in segment.mode:
                 segmentsData['Start'][segment.mode] = {segment.PTstart: segmentData['startTime']}
                 segmentsData['End'][segment.mode] = {segment.PTend: segmentData['endTime']}
+            if 'ps_tax' in segment.mode:
+                segmentsData['Taxi Fare'] = segment.localCost
         
         return segmentsData
     
