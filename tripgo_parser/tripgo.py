@@ -603,7 +603,7 @@ class Segment:
     def walkingDistances(self):
         walkingDistance = 0
         try:
-            if 'Walk' in self.segmentTemplate['action']:
+            if 'wa_wal' in self.segmentTemplate['modeInfo']['identifier']:
                 walkingDistance += self.segmentTemplate['metres']
         except:
             pass

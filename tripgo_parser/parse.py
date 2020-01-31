@@ -170,15 +170,11 @@ class Parse:
             'car_travelTime': groupData.totalTravelTime,
             'car_weightedScore': groupData.weightedScore, # for testing
             'car_fuelCost': groupData.segmentData['Fuel Cost'],
-            'car_parkingExists': groupData.segmentData['Parking Exists'],
-            'car_parkingCost': groupData.segmentData['Parking Cost'],
-            'car_calorieCost': groupData.caloriesCost,
-            'car_modeCount': len(groupData.segmentData['Modes']),
-            'car_tripModes': groupData.tripModes,
-            'car_walkingDistance': groupData.segmentData['Walking Distance'],
-            'car_numberOfTransfers': groupData.numberOfTransfers,
-            'car_hassleCost': groupData.hassleCost,
-            'car_distances': groupData.segmentData['Distances']
+            'car_privateParkingExists': groupData.segmentData['Parking Exists'],
+            'car_privateParkingCost': groupData.segmentData['Parking Cost'],
+            'car_travelTime_trafficless': groupData.segmentData['Traffic-less Duration'],
+            'car_calorieCost': groupData.caloriesCost, 'car_walkingDistance': groupData.segmentData['Walking Distance'], 'car_hassleCost': groupData.hassleCost,
+            'car_drivingDistances': groupData.segmentData['Distances'].get('me_car'),
             }
 
             return parsedGroupData
@@ -196,10 +192,11 @@ class Parse:
             {
             'cycling_travelTime': groupData.totalTravelTime,
             'cycling_weightedScore': groupData.weightedScore, # for testing
-            'cycling_Calorie Cost': groupData.caloriesCost,
+            'cycling_calorieCost': groupData.caloriesCost,
             'cycling_hassleCost': groupData.hassleCost,
-            'cycling_modes': groupData.tripMode,
-            'cycling_distances': groupData.segmentData['Distances']
+            'cycling_distances': sum(groupData.segmentData['Distances'].values()),
+            'cycling_distance_safe': groupData.segmentData['Meters Safe'],
+            'cycling_distance_unsafe': groupData.segmentData['Meters Unsafe']
             }
             return parsedGroupData
 
@@ -217,7 +214,8 @@ class Parse:
             'walking_travelTime': groupData.totalTravelTime,
             'walking_weightedScore': groupData.weightedScore, # for testing
             'walking_calorieCost': groupData.caloriesCost,
-            'walking_hassleCost': groupData.hassleCost
+            'walking_hassleCost': groupData.hassleCost,
+            'walking_distances': groupData.segmentData['Distances'].get('wa_wal')
             }
             return parsedGroupData
 
@@ -234,10 +232,9 @@ class Parse:
             {
             'taxi_travelTime': groupData.totalTravelTime,
             'taxi_weightedScore': groupData.weightedScore, # for testing
-            'taxi_waitTime': groupData.waitTime,
-            'taxi_cost': groupData.,
+            'taxi_waitTime': groupData.segmentData['Wait Time'],
+            'taxi_cost': groupData.segmentData['Taxi Fare'],
             'taxi_walkingDistance': groupData.segmentData['Walking Distance'],
-            'taxi_numberOfTransfers': groupData.numberOfTransfers,
             'taxi_hassleCost': groupData.hassleCost
             }
             return parsedGroupData
@@ -262,7 +259,8 @@ class Parse:
             'transit_timeOnMainMode': groupData.timeOnMainMode,
             'transit_timeOnOtherModes': groupData.timeOnOtherModes,
             'transit_timeOnEachMode': groupData.segmentData['Travel Times'],
-            'transit_distances': groupData.segmentData['Distances'], 'transit_modes': groupData.segmentData['Modes'],
+            'transit_distances': groupData.segmentData['Distances'], 
+            'transit_modes': groupData.segmentData['Modes'],
             'transit_start': groupData.segmentData['Start'],
             'transit_end': groupData.segmentData['End'],
             'transit_hassleCost': groupData.hassleCost,
@@ -415,10 +413,10 @@ class Group:
                 self.tripMode = tripData.tripMode
                 self.tripModes = tripData.tripModesAlt
                 self.numberOfTransfers = tripData.numberOfTransfers
-                self.waitTime = tripData.waitTime
                 self.segmentData = tripData.segmentData
                 self.timeOnMainMode = tripData.timeOnMainMode
                 self.timeOnOtherModes = tripData.timeOnOtherModes
+                
 
     def getLowestWS(self):
         tripsWS = {}
@@ -444,7 +442,6 @@ class Trip:
         self.hassleCost = tripData['hassleCost']
         self.tripModes, self.tripModesAlt = self.getModes()
         self.tripMode = self.getMode()
-        self.waitTime = self.getWaitTime()
         self.segmentData = self.getSegmentData()
         self.numberOfTransfers = self.numberOfTransferss()
         self.timeOnMainMode = self.getTimeOnMainMode()
@@ -464,6 +461,7 @@ class Trip:
         'Travel Times': {},
         'Walking Distance': 0,
         'Traffic-less Duration': 0,
+        'Wait Time': 0,
         'Meters Safe': 0,
         'Meters Unsafe': 0
         }
@@ -485,8 +483,10 @@ class Trip:
             if 'pt_pub' in segment.mode:
                 segmentsData['Start'][segment.mode] = {segment.PTstart: segmentData['startTime']}
                 segmentsData['End'][segment.mode] = {segment.PTend: segmentData['endTime']}
-            if 'ps_tax' in segment.mode:
+            if 'ps_' in segment.mode:
                 segmentsData['Taxi Fare'] = segment.localCost
+            if 'stationary_' in segment.mode:
+                segmentsData['Wait Time'] += segmentTravelTime
         
         return segmentsData
     
@@ -523,15 +523,7 @@ class Trip:
 
         return numberOfTransfers
 
-    def getWaitTime(self):
-        waitTime = 0
-        for i in range(len(self.tripModes)):
-            if 'stationary' in self.tripModes[i]:
-                waitSegment = self.tripData['segments'][i]
-                waitTime += waitSegment['endTime'] - waitSegment['startTime']
 
-        return waitTime
-    
     def getTimeOnMainMode(self):
         timeOnMainMode = 0
         for segment in self.tripData['segments']:
@@ -566,7 +558,7 @@ class Segment:
         self.metersUnsafe = self.metersUnsafes()
         self.PTstart = self.getPTStart()
         self.PTend = self.getPTEnd()
-    
+
     def getPTStart(self):
         if 'pt_pub' in self.mode:
             try:
@@ -627,7 +619,7 @@ class Segment:
     def walkingDistances(self):
         walkingDistance = 0
         try:
-            if 'Walk' in self.segmentTemplate['action']:
+            if 'wa_wal' in self.segmentTemplate['modeInfo']['identifier']:
                 walkingDistance += self.segmentTemplate['metres']
         except:
             pass

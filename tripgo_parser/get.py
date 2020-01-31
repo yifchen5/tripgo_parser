@@ -102,7 +102,10 @@ class Response():
             unique_id = '{}-{}-{}-{}-{}{}.json'.format(olt, oln, dlt, dln, self.startime, md)
 
         elif unique_id == '' and self.tripid != '':
-            unique_id = '{}-{}-{}.json'.format(self.tripid, self.startime, md)
+            if self.modes == []:
+                unique_id = '{}-{}.json'.format(self.tripid, self.startime)
+            else:
+                unique_id = '{}-{}-{}.json'.format(self.tripid, self.startime, md)
 
         else:
             unique_id = ''.join([unique_id, '.json'])
